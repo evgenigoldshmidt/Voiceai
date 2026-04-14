@@ -581,7 +581,6 @@ Caller: Hi, I'm furious! Your system went down during my launch! I need a refund
             btn.innerHTML = '<svg class="animate-spin h-4 w-4 text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> מכין אימייל...';
             
             setTimeout(() => {
-                // הוספתי פסיק בין שתי הכתובות כדי שהמייל יישלח לשתיהן יחד
                 const targetEmail = "evgeni.goldshmidt@gmail.com,support@wisedo.ai";
                 const subject = encodeURIComponent("New Early Access Request - WiseDo.ai");
                 const body = encodeURIComponent(`Work Email: ${emailInput}\nCompany Size: ${sizeInput}\nPrimary Use Case: ${useCaseInput}\n\nPlease contact me regarding early access.`);
@@ -603,18 +602,28 @@ Caller: Hi, I'm furious! Your system went down during my launch! I need a refund
         // ==========================================
         // אינטגרציית Gemini API - קריאות ל-LLM
         // ==========================================
-        const apiKey = ""; // המפתח יוזרק אוטומטית בסביבת ההרצה
+        const apiKey = ""; // בסביבת התצוגה המקדימה כאן, המפתח מוזרק אוטומטית. השאר ריק!
+        const myRealKey = "AIzaSyClaRP2z0I5zBzI-qlyAKYQ6ITd-sJ4yVk"; // המפתח שלך לפרודקשן
 
         // פונקציית עזר לביצוע קריאה ל-API עם מנגנון השהיה (Exponential Backoff)
         async function fetchGeminiWithRetry(prompt, retries = 5) {
             const delays = [1000, 2000, 4000, 8000, 16000];
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
+            // 1. הגדרות ברירת מחדל לסביבת התצוגה (Canvas) - עובד כרגע:
+            let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            let headers = { 'Content-Type': 'application/json' };
+
+            // 2. כשתעלה את האתר לשרת שלך, פשוט תמחק את הסימון '//' מ-2 השורות הבאות 
+            // כדי להשתמש במודל המדויק וב-X-goog-api-key שלך:
+            
+             url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`;
+             headers = { 'Content-Type': 'application/json', 'X-goog-api-key': myRealKey };
+
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify({
                             contents: [{ parts: [{ text: prompt }] }]
                         })
